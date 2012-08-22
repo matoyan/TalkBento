@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+	<!-- Application -->
+    <string name="app_name">TalkBento</string>
+
+    <string name="description_add">Add</string>
+    <string name="description_more">More</string>
+    
+    
+    <string name="market_dialog_title">TalkBento</string>
+    <string name="market_dialog_text">Musubi App is required to use TalkBento.\nDownload Musubi now?</string>
+    <string name="market_dialog_yes">Yes!</string>
+    <string name="market_dialog_no">No, thanks</string>
+    
+    <string name="home_loading">Loading ...</string>
+    
+</resources>

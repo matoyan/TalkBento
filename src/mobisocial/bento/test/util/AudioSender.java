@@ -13,6 +13,7 @@ import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.util.Log;
 
 public class AudioSender{
@@ -59,6 +60,10 @@ public class AudioSender{
 			          android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
 
 			try {
+				int source = MediaRecorder.AudioSource.MIC;
+				if(Build.VERSION.SDK_INT >= 11){
+					source = MediaRecorder.AudioSource.VOICE_COMMUNICATION;
+				}
 				int bufferSizeRecord = 
 						AudioRecord.getMinBufferSize(
 								SOUND_RATE, 
@@ -66,7 +71,7 @@ public class AudioSender{
 								AudioFormat.ENCODING_PCM_16BIT);
 				AudioRecord audioRecord = 
 						new AudioRecord(
-								MediaRecorder.AudioSource.VOICE_COMMUNICATION,
+								source,
 								SOUND_RATE,
 								AudioFormat.CHANNEL_IN_MONO,
 								AudioFormat.ENCODING_PCM_16BIT,

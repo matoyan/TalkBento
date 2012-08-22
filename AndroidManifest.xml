@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="mobisocial.bento.test.talk"
-      android:versionCode="001"
-      android:versionName="0.0.1">
+      android:versionCode="002"
+      android:versionName="0.0.2">
     <uses-sdk android:minSdkVersion="7" android:targetSdkVersion="11" />
     
     <uses-permission android:name="android.permission.INTERNET" />
@@ -24,7 +24,12 @@
                 <category android:name="musubi.intent.category.MENU" />
                 <category android:name="musubi.intent.category.DEFAULT" />
             </intent-filter>
-        </activity>        
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="vnd.musubi.obj/talkbento"/>
+            </intent-filter>
+       	</activity>        
 
     </application>
     

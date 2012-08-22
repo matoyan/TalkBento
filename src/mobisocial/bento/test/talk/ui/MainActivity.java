@@ -13,6 +13,7 @@ import edu.stanford.junction.JunctionException;
 import edu.stanford.junction.api.activity.JunctionActor;
 import edu.stanford.junction.api.messaging.MessageHeader;
 
+import mobisocial.socialkit.musubi.DbFeed;
 import mobisocial.socialkit.musubi.DbObj;
 import mobisocial.socialkit.musubi.FeedObserver;
 import mobisocial.socialkit.musubi.Musubi;
@@ -40,9 +41,10 @@ public class MainActivity extends SherlockFragmentActivity {
 	private Junction mJunction;
 	private Musubi mMusubi;
 	private boolean isOnline = false;
-	private DbObj parent;
+	private Uri parentUri;
 	private String myname;
 	private String uuid = null;
+	private boolean isWaiting = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +52,7 @@ public class MainActivity extends SherlockFragmentActivity {
 
         setContentView(R.layout.activity_main);
         uuid = null;
-        parent = null;
+        parentUri = null;
         
         // create Musubi Instance
         InitialHelper initHelper = new InitialHelper(this, mInitCompleteListener);
@@ -101,38 +103,35 @@ public class MainActivity extends SherlockFragmentActivity {
 			setupButtons();
 			
 			mMusubi = mManager.getMusubi();
-			if(mMusubi.getFeed()!=null){
-	    		myname = mMusubi.userForLocalDevice(mMusubi.getFeed().getUri()).getName();
+			DbFeed feed = mMusubi.getFeed();
+			if(feed!=null){
+	    		myname = mMusubi.userForLocalDevice(feed.getUri()).getName();
 	    		
-				parent = mMusubi.getFeed().getLatestObj(DataManager.TYPE_TALKBENTO);
-				DbObj obj = mMusubi.getFeed().getLatestObj(DataManager.TYPE_APP_STATE);
+				DbObj obj = feed.getLatestObj();
 				if(obj != null){
 					uuid = mManager.getJunctionHash(obj);
 				}
 				
-				if(uuid == null || parent == null){
-					if(parent == null){
-						// send parent and generate new
-						Uri objUri = mManager.postAppObj(mMusubi.getFeed());
-						parent = mMusubi.objForUri(objUri);
-					
-						if(uuid == null){
-							// TODO remove
-							while(uuid == null){
-								try {
-									Thread.sleep(1000);
-								} catch (InterruptedException e) {
-									e.printStackTrace();
-								}
-								parent = mMusubi.objForUri(objUri);
-								uuid = parent.getUniversalHashString();
-							}
-						}
-					}else{
-						uuid = parent.getUniversalHashString();
-					}
-					mManager.pushUpdate(parent.getSubfeed(), myname+" has joined @TalkBento", uuid);
+				if(uuid==null){
+					uuid = mManager.generateRandomId();
 				}
+				
+				DbObj parent = feed.getLatestObj(DataManager.TYPE_TALKBENTO);
+				
+				if(parent == null){
+					// send parent and generate new
+					parentUri = mManager.postAppObj(feed, uuid);
+					try {
+						Thread.sleep(3000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					} // TODO Delete
+					parent = mMusubi.objForUri(parentUri);
+				}else{
+					parentUri = parent.getUri();
+				}
+
+				mManager.pushUpdate(parent.getSubfeed(), myname+" has joined @TalkBento", uuid);
 			}else{
 				Log.d(TAG, "FALIED TO GET FEED");
 			}
@@ -188,13 +187,24 @@ public class MainActivity extends SherlockFragmentActivity {
 	private final FeedObserver mStateObserver = new FeedObserver() {
 		@Override
 		public void onUpdate(DbObj obj) {
-			// do something
+			Log.d(TAG, "UPDATE RECEIVED");
+			if (isWaiting) {
+				if (obj == null || !obj.getType().equals(DataManager.TYPE_TALKBENTO)) {
+					return;
+				}
+				if (obj.getSenderId() == mManager.getMusubi().userForLocalDevice(obj.getContainingFeed().getUri()).getLocalId()){
+					if (isWaiting) {
+						isWaiting = false;
+					}
+				}
+			}
 		}
 	};
 
+
 	private void disconnect(){
-		if(uuid!=null){
-			mManager.pushUpdate(parent.getSubfeed(), myname+" is leaving...", uuid);
+		if(uuid!=null && parentUri!=null){
+			mManager.pushUpdate(mMusubi.objForUri(parentUri).getSubfeed(), myname+" is leaving...", uuid);
 		}
     	if(audioSender!=null){
     		audioSender.stopRecording();
@@ -217,7 +227,7 @@ public class MainActivity extends SherlockFragmentActivity {
             		disconnect();
             	}else{
             		if(uuid!=null){
-    					mManager.pushUpdate(parent.getSubfeed(), myname+" has joined @TalkBento", uuid);
+    					mManager.pushUpdate(mMusubi.objForUri(parentUri).getSubfeed(), myname+" has joined @TalkBento", uuid);
             			connect(uuid);
             		}else{
             			askMusubi();

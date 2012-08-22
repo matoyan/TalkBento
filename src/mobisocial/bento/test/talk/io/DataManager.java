@@ -3,6 +3,8 @@ package mobisocial.bento.test.talk.io;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.UUID;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -31,7 +33,7 @@ public class DataManager {
 
 	public static final String TYPE_TALKBENTO = "talkbento";
 	public static final String TYPE_APP_STATE = "appstate";
-	private static long ACCEPTABLE_LAG = 5*1000; // in ms
+	private static long ACCEPTABLE_LAG = 30*1000; // in ms
 
 
     private static DataManager sInstance;
@@ -62,9 +64,10 @@ public class DataManager {
 		return mMusubi;
 	}
 	
-	public Uri postAppObj(DbFeed feed){
+	public Uri postAppObj(DbFeed feed, String uuid){
 		try {
 			JSONObject rootObj = new JSONObject();
+			rootObj.put("uuid", uuid);
 			rootObj.put(Obj.FIELD_RENDER_TYPE, Obj.RENDER_LATEST);
 			JSONObject out = new JSONObject(rootObj.toString());
 						
@@ -90,6 +93,10 @@ public class DataManager {
 		} catch (JSONException e) {
 			Log.e(TAG, "Failed to post JSON", e);
 		}
+	}
+	
+	public String generateRandomId(){
+		return UUID.randomUUID().toString();
 	}
 	
 	public String getJunctionHash(DbObj obj){

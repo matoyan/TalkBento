@@ -7,7 +7,7 @@ TalkBento is an Android application of enable group talking on [Musubi][1] platf
 Developed By
 ============
 
-Kazumine Matoba - <matoyan@gmail.com>
+Kazumine Matoba - https://twitter.com/matoyan
 
 
 
